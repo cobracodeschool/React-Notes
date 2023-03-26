@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 
+const bcrypt = require("bcrypt");
+
 const cors = require("cors");
 const corsOptions = {
   origin: "http://localhost:3000",
@@ -58,14 +60,36 @@ app.post("/", async (req, res) => {
   const password = req.body.password;
   const email = req.body.email;
   const phoneNumber = req.body.phoneNumber;
+
+  // Hash password using bcrypt
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   const post_data = crud_table_backend.build({
     userName,
-    password,
+    password: hashedPassword,
     email,
     phoneNumber
   });
   await post_data.save();
   res.send("Data posted ");
+});
+
+// Post for Login
+app.post("/signin", async (req, res) => {
+  const { userName, password } = req.body;
+  const user = await crud_table_backend.findOne({ where: { userName } });
+  if (!user) {
+    return res.status(401).json({ error: "Invalid username or password" });
+  }
+
+  // Compare hashed password with plain password using bcrypt
+  const passwordMatch = await bcrypt.compare(password, user.password);
+  if (!passwordMatch) {
+    return res.status(401).json({ error: "Invalid username or password" });
+  }
+
+  // User is authenticated at this point
+  res.json({ message: "Authentication successful" });
 });
 
 // Get All data
@@ -90,16 +114,19 @@ app.get("/:id", async (req, res) => {
 // Update data
 app.put("/:id", async (req, res) => {
   const id = req.params.id;
-  const data = req.body;
+  const { userName, email, phoneNumber } = req.body;
   try {
-    const update_data = await crud_table_backend.update(data, {
+    const update_data = await crud_table_backend.update(userName, email, phoneNumber, {
       where: { id }
     });
-    // res.send("Data Updated");
-    res.redirect("/");
+    res.send("Data Updated");
+    // res.redirect("/");
   } catch (err) {
     res.send(err);
   }
+
+
+  
 });
 
 // Delete data
@@ -109,8 +136,8 @@ app.delete("/:id", async (req, res) => {
     const delete_data = await crud_table_backend.destroy({
       where: { id }
     });
-    // res.send("Data Deleted");
-    res.redirect("/");
+    res.send("Data Deleted");
+    // res.redirect("/");
   } catch (err) {
     res.send(err);
   }

@@ -1,36 +1,21 @@
 import "./App.css";
-import axios from "axios";
-import {useState} from "react"
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import SignIn from "./Components/SignIn";
+import SignUp from "./Components/SignUp";
+import HomePage from "./Components/HomePage";
+import Update from "./Components/Update";
 
 function App() {
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
-  const [email, setMail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-
-  const formHandle = async (e) => {
-    e.preventDefault()
-    const data = { userName, password, email, phoneNumber };
-    await axios.post("http://localhost:5000/", data)
-    .then(() => {
-      console.log("Data Submitted Successfully")
-    })
-    .catch((err) => {
-      console.log(err)
-    });
-
-  };
   return (
     <div className="App p-5">
-      <form onSubmit={formHandle} className="d-flex justify-content-center align-items-center">
-       <div className="d-flex justify-content-center align-items-center flex-column gap-2 w-50">
-       <input className="rounded" type="text" placeholder="User Name" value={userName} onChange={(e) => {setUserName(e.target.value)}}/>
-        <input className="rounded" type="text" placeholder="Password" value={password} onChange={(e) => {setPassword(e.target.value)}}/>
-        <input className="rounded" type="text" placeholder="Email" value={email} onChange={(e) => {setMail(e.target.value)}}/>
-        <input className="rounded" type="text" placeholder="Phone number" value={phoneNumber} onChange={(e) => {setPhoneNumber(e.target.value)}}/>
-        <button className="rounded" type="submit">Submit</button>
-       </div>
-      </form>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/homepage" element={<HomePage />} />
+          <Route path="/update/:id" element={<Update />} />
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
